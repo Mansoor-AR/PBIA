@@ -1,0 +1,7 @@
+version: '3'
+services:
+  helloworld1:
+    build: .
+  helloworld2:
+    build: .
+
