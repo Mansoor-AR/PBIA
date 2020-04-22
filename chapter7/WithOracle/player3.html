@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Player 3 Page</title>
+
+    <link rel="stylesheet" type="text/css" href="stylesheet/milligram.min.css">
+
+</head>
+
+<body>
+    <div class="container" style="text-align: center;">
+
+        <h1>Player 3 page</h1>
+        <h3 id="textid1"></h3>
+        <form>
+            <div>
+                <input type="text" id="bet" name="bet">
+                <button id="MakeBetbutton" type="button">Make Bet</button>
+            </div>
+            <br />
+            <br />
+            <button id="Winnerbutton" type="button">Get Current Winner</button>
+        </form>
+        <h3 id="textid2"></h3>
+    </div>
+
+    <script type='text/javascript' src='./scripts/jquery-3.5.0.min.js'></script>
+    <script type='text/javascript' src='./scripts/web3.min.js'></script>
+
+    <script>
+        // set the provider you want, change port number for different nodes.
+        const web3 = new Web3(
+            new Web3.providers.HttpProvider("http://localhost:22003")
+        );
+
+        //const id = await web3.eth.net.getId();
+        web3.eth.defaultAccount = web3.eth.accounts[0];
+
+        var Dealer = new web3.eth.Contract([
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "betsLocked",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "addr",
+                        "type": "address"
+                    }
+                ],
+                "name": "addOracle",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "newPlayer",
+                        "type": "address"
+                    }
+                ],
+                "name": "addPlayer",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "chooseWinner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getWinner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "lockBets",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "bet",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "makeBet",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ], '0x1932c48b2bF8102Ba33B4A6B545C32236e342f34');  //Address of your deployed contract here
+
+        //Player address retrieved here
+        (web3.eth.getAccounts((err, acc) => { Dealer.options.from = acc[0]; }));
+        Dealer.options.gas = 5000000; // default gas limit for transactions
+        console.log(Dealer.options.address);
+
+        $("#MakeBetbutton").click(function () {
+            //Send is used for state-changing functions
+            Dealer.methods.makeBet($('#bet').val()).send((err, txhash) => { console.log(txhash); console.log(err); });
+            $('#textid2').html("Bet submitted!");
+        });
+
+        $("#Winnerbutton").click(function () {
+            //Call is used for non-state-changing functions
+            Dealer.methods.getWinner().call((err, result) => {
+                console.log(result, err),
+                $('#textid2').html("Winner for round " + result[1] + " is " + result[0]);
+                if (result[0] === Dealer.options.from) {
+                    $('#textid1').html("You won round " + result[1] + "!");
+                }
+                else
+                    $('#textid1').html("");
+            });
+        });
+
+
+    </script>
+
+</body>
+
+</html>

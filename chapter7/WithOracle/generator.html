@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Random Number Generator Page</title>
+
+    <link rel="stylesheet" type="text/css" href="stylesheet/milligram.min.css">
+
+</head>
+
+<body>
+    <div class="container" style="text-align: center;">
+
+        <h1>Random Number Generator page</h1>
+        <h2>There are no user inputs here.</h2>
+        <h2>Only a well-behaved listener and RNG.</h2>
+        <h3 id="textid1"></h3>
+        <h3 id="textid2"></h3>
+    </div>
+
+    <script type='text/javascript' src='./scripts/jquery-3.5.0.min.js'></script>
+    <script type='text/javascript' src='./scripts/web3.min.js'></script>
+
+    <script>
+        // set the provider you want, change port number for different nodes.
+        const web3 = new Web3(
+            new Web3.providers.WebsocketProvider("ws://localhost:22205")
+        );
+
+        web3.eth.defaultAccount = web3.eth.accounts[0];
+
+        var RNG = new web3.eth.Contract([
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "numberSubmitted",
+                "type": "event"
+            },
+            {
+                "inputs": [],
+                "name": "getRandom",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "rand",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "setRandom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ], '0x2634416c409Db4A974775ea06246b387aD3A1b46');  //Address of your deployed oracle contract here
+
+        (web3.eth.getAccounts((err, acc) => { RNG.options.from = acc[0]; }));
+        RNG.options.gas = 5000000; // default gas limit for transactions
+        console.log(RNG.options.address);
+
+        var Dealer = new web3.eth.Contract([
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "betsLocked",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "addr",
+                        "type": "address"
+                    }
+                ],
+                "name": "addOracle",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "newPlayer",
+                        "type": "address"
+                    }
+                ],
+                "name": "addPlayer",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "chooseWinner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getWinner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "lockBets",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "bet",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "makeBet",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ], '0x1932c48b2bF8102Ba33B4A6B545C32236e342f34');  //Address of your deployed dealer contract here
+
+        //Listen for events from Dealer, then call generator function
+        Dealer.events.betsLocked({ fromBlock: 0 },
+            function (error, event) { }).on('data', function (event) {
+                console.log("Value from event: " + event.returnValues[0]);
+                $('#textid1').html("Bets Locked! Round: " + event.returnValues[0]);
+                setTimeout(randomSubmit(event.returnValues[0]),0);
+            });
+
+        //Function to generate a random number and then setRandom in the RNG contract
+        function randomSubmit(roundval) {
+            //Generate a number between 1 nad 13
+            var rand = Math.floor(Math.random() * 13) + 1;
+            RNG.methods.setRandom(rand).send((err, txhash) => {
+                console.log(txhash);
+                if (err)
+                    console.log("ERROR in send Random: " + err);
+                else
+                    $('#textid2').html("Random number for round " + roundval+ " is " + rand);
+            });
+        }
+
+    </script>
+
+</body>
+
+</html>
