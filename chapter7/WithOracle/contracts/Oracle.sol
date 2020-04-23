@@ -12,10 +12,15 @@ contract Oracle is ointerface.OracleInterface{
         owner = msg.sender;
     }
     
+    modifier onlyOwner() {
+        require (msg.sender == owner, "Must be sent by owner");
+        _;
+    }
+    
     //Let participants know number has been submitted for round
     event numberSubmitted(uint);
 
-    function setRandom(uint rand) public override {
+    function setRandom(uint rand) public onlyOwner override {
         //Check if it is a valid card
         if(rand < 1 || rand > 13)
             revert("Value submitted invalid");
