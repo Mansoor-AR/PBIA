@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sender Page</title>
+
+    <link rel="stylesheet" type="text/css" href="stylesheet/milligram.min.css">
+
+</head>
+
+<body>
+    <div class="container" style="text-align: center;">
+
+        <h1>Sender page</h1>
+        <form>
+            <div>
+                <input type="text" id="approver" value="0xca843569e3427144cead5e4d5999a3d0ccf92b8e" name="approver">
+                <button id="Approverbutton" type="button">Add Approver</button>
+                <br />
+                <br />
+                <input type="text" id="secretval" value="ExampleVal123" name="secretval">
+                <button id="Hashbutton" type="button">Send Hash To Blockchain</button>
+                <button id="Valuebutton" type="button">Send Value To Other Tab</button>
+            </div>
+        </form>
+    </div>
+
+    <script type='text/javascript' src='./scripts/jquery-3.5.0.min.js'></script>
+    <script type='text/javascript' src='./scripts/web3.min.js'></script>
+
+    <script>
+        // set the provider you want, change port number for different nodes.
+        const web3 = new Web3(
+            new Web3.providers.HttpProvider("http://localhost:22000")
+        );
+
+        web3.eth.defaultAccount = web3.eth.accounts[0];
+
+        var Anchor = new web3.eth.Contract([
+            {
+                "inputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "approval",
+                        "type": "bool"
+                    }
+                ],
+                "name": "approve",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "app",
+                        "type": "address"
+                    }
+                ],
+                "name": "setApprover",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "secHash",
+                        "type": "string"
+                    }
+                ],
+                "name": "setVal",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [],
+                "name": "retreiveHash",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "retreiveStatus",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ], '0x1932c48b2bF8102Ba33B4A6B545C32236e342f34');  //Address of your deployed Anchor contract here
+
+        //Anchor address retrieved here
+        (web3.eth.getAccounts((err, acc) => { Anchor.options.from = acc[0]; }));
+        Anchor.options.gas = 5000000; // default gas limit for transactions
+        console.log(Anchor.options.address);
+
+        const channel = new BroadcastChannel('secret');
+
+        $("#Approverbutton").click(function () {
+            var addr = $('#approver').val();
+            //Send is used for state-changing functions
+            Anchor.methods.setApprover(addr).send((err, txhash) => {
+                console.log(txhash);
+                if (err)
+                    console.log("ERROR in send setApprover: " + err);
+            });
+        });
+
+        $("#Hashbutton").click(function () {
+            var val = $('#secretval').val();
+            var hash = web3.utils.sha3(val);
+            console.log(hash);
+            //Send is used for state-changing functions
+            Anchor.methods.setVal(hash).send((err, txhash) => {
+                console.log(txhash);
+                if (err)
+                    console.log("ERROR in send setVal: " + err);
+            });
+        });
+
+        $("#Valuebutton").click(function () {
+            var val = $('#secretval').val();
+            channel.postMessage(val); //Send to other tab
+            console.log(val);
+        });
+
+        channel.onmessage = function(val) {
+            console.log(val);
+        }
+
+        channel.onmessageerror = function(err) {
+            console.log(err);
+        }
+
+    </script>
+
+</body>
+
+</html>

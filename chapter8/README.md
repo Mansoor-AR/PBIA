@@ -1,0 +1,1 @@
+Please use Chrome for this exercise. Firefox has an open bug (https://bugzilla.mozilla.org/show_bug.cgi?id=1600512) that prevents BroadcastChannels from working for local files.
