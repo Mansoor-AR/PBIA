@@ -236,7 +236,6 @@
             oldContract.methods.retrieveLen().call((err, result) => {
                 $('#textid2').html("Total number of items to migrate = " + result[0]);
                 var itemCount = result[0];
-                console.log(itemCount);
                 for (var i = 0; i < itemCount; i++) {
                     //Now, for each item, pull data from old contract and push to new contract
                     console.log(i);
@@ -251,9 +250,7 @@
         });
 
         $("#Registrybutton").click(function () {
-            var address = $('#textid1').text().substring(34); //yes, this is a bit hacky but it works :)
-            console.log(address);
-            Registry.methods.storeAddress("SampleContract", address).send((err, txhash) => { console.log(txhash); console.log(err); });
+            Registry.methods.storeAddress("SampleContract", newContract.options.address).send((err, txhash) => { console.log(txhash); console.log(err); });
             $('#textid2').html("Registry entry updated");
         });
     </script>
