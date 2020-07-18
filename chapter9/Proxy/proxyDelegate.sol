@@ -1,12 +1,13 @@
 pragma solidity >=0.4.22 <0.7.0;
 
 /**
- * @title Storage
- * @dev Store & retrieve values in an array
+ * @title testStorage
+ * @dev Store & retrieve values in an array and a boolaen
  */
-contract Storage {
+contract testStorage {
 
     uint256 totalnums;
+    bool testbool;
     uint256[] numbers;
     address admin;
     bool active;
@@ -28,6 +29,18 @@ contract Storage {
      */
     function store(uint256 num) public isActive {
         numbers.push(num+1); //Intentional bug
+    }
+    
+    function setbool() public {
+        testbool = true;
+    }
+    
+    function resetbool() public {
+        testbool = false;
+    }
+    
+    function getbool() public view returns (bool) {
+        return testbool;
     }
 
     /**
